@@ -1,17 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from datetime import timedelta
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.security import hash_password, verify_password, create_access_token, decode_access_token
 from app.models.user import User
-from app.schemas.user import UserCreate, UserLogin, UserResponse
+from app.schemas.user import UserCreate, UserResponse, UserLogin
 from app.schemas.token import Token
 
 router = APIRouter()
 
-# OAuth2 scheme for extracting Bearer token from HTTP Authorization header
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
@@ -45,27 +47,28 @@ async def get_current_user(
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
 
-    if user is None or not user.is_active:
+    if not user or not user.is_active:
         raise credentials_exception
 
     return user
 
 
-@router.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED, tags=["Authentication"])
+@router.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED, tags=["Users"])
 async def register_user(
     user_in: UserCreate,
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Register a new user account. Hashes password before storing in PostgreSQL.
+    Register a new user account with hashed password storage.
     """
-    # Check if email is already registered
+    # Check if user already exists
     result = await db.execute(select(User).where(User.email == user_in.email))
     existing_user = result.scalar_one_or_none()
+
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A user with this email already exists."
+            detail="A user with this email address already exists."
         )
 
     # Create new User ORM instance
@@ -86,16 +89,42 @@ async def register_user(
 
 @router.post("/auth/login", response_model=Token, tags=["Authentication"])
 async def login_user(
-    credentials: UserLogin,
+    request: Request,
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Authenticate user credentials and issue a signed JWT access token.
+    Authenticate user credentials (supports both OAuth2 form-data and JSON payloads)
+    and issue a signed JWT access token.
     """
-    result = await db.execute(select(User).where(User.email == credentials.email))
+    content_type = request.headers.get("content-type", "").lower()
+    email: Optional[str] = None
+    password: Optional[str] = None
+
+    if "application/json" in content_type:
+        try:
+            body = await request.json()
+            email = body.get("email") or body.get("username")
+            password = body.get("password")
+        except Exception:
+            pass
+    else:
+        try:
+            form = await request.form()
+            email = form.get("username") or form.get("email")
+            password = form.get("password")
+        except Exception:
+            pass
+
+    if not email or not password:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Email/username and password are required."
+        )
+
+    result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
 
-    if not user or not verify_password(credentials.password, user.hashed_password):
+    if not user or not verify_password(password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password.",
@@ -108,12 +137,17 @@ async def login_user(
             detail="Inactive user account."
         )
 
-    access_token = create_access_token(subject=user.id)
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        subject=user.id,
+        expires_delta=access_token_expires
+    )
+
     return Token(access_token=access_token, token_type="bearer")
 
 
-@router.get("/users/me", response_model=UserResponse, tags=["Authentication"])
-async def get_my_profile(
+@router.get("/users/me", response_model=UserResponse, tags=["Users"])
+async def read_users_me(
     current_user: User = Depends(get_current_user)
 ):
     """

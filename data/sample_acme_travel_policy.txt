@@ -1,0 +1,32 @@
+================================================================================
+               ACME ENTERPRISE GLOBAL TRAVEL & IT EQUIPMENT POLICY (2025)
+================================================================================
+
+SECTION 1: BUSINESS TRAVEL & FLIGHT REIMBURSEMENTS
+1.1 Air Travel Class:
+    - All domestic and short-haul flights under 6 hours must be booked in Economy Class.
+    - International flights exceeding 6 hours in duration are eligible for Business Class booking with prior manager approval.
+
+1.2 Lodging & Hotel Allowances:
+    - Standard domestic hotel budget is capped at $250.00 USD per night (excluding taxes).
+    - Tier-1 global cities (New York, London, Tokyo, San Francisco) are permitted up to $350.00 USD per night.
+
+1.3 Meal & Incidentals Allowance (Per Diem):
+    - Domestic Meal Allowance: $75.00 USD per day ($15 Breakfast, $25 Lunch, $35 Dinner).
+    - International Meal Allowance: $120.00 USD per day ($25 Breakfast, $40 Lunch, $55 Dinner).
+    - Alcohol is strictly non-reimbursable under company policy.
+
+SECTION 2: IT EQUIPMENT & REMOTE WORK STIPEND
+2.1 Hardware Provisioning:
+    - All Senior Software and AI Engineers are issued a 16-inch Apple MacBook Pro (M3 Max, 36GB RAM, 1TB SSD).
+    - Monitors and docking stations are provided at corporate offices.
+
+2.2 Home Office & Ergonomics Allowance:
+    - Full-time remote employees receive a one-time $500.00 USD home office setup stipend.
+    - High-speed home internet is reimbursed up to $80.00 USD per month with receipt proof.
+
+SECTION 3: EXPENSE SUBMISSION & APPROVAL DEADLINES
+3.1 Expense Reporting:
+    - All expense reports must be submitted within 14 business days of returning from trip.
+    - Expense items exceeding $25.00 USD require itemized physical or digital receipts.
+    - Manager approval is required for all expense reports prior to Finance payout.

@@ -1,5 +1,7 @@
 # Production-Grade Enterprise AI Platform
 
+![Enterprise AI CI/CD Pipeline](https://github.com/vinodh1299/enterprise-ai-platform/actions/workflows/deploy.yml/badge.svg)
+
 A full-stack, production-ready Enterprise AI & Multi-Agent Engine built with **FastAPI**, **PostgreSQL 16 + pgvector**, **Redis**, **Ollama ($0 Local LLM)**, **Google Gemini SDK**, **FastEmbed**, and **Docker**.
 
 ---

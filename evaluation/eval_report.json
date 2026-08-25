@@ -1,0 +1,36 @@
+{
+  "total_test_cases": 3,
+  "avg_context_relevance": 0.85,
+  "avg_faithfulness": 0.9,
+  "avg_answer_relevance": 0.95,
+  "overall_rag_score": 0.9,
+  "results": [
+    {
+      "test_id": 1,
+      "question": "What is the international meal allowance for business travel?",
+      "context_relevance": 0.85,
+      "faithfulness": 0.9,
+      "answer_relevance": 0.95,
+      "rag_triad_score": 0.9,
+      "generated_answer": "{\"tool\": \"search_documents\", \"args\": {\"query\": \"policy\"}}"
+    },
+    {
+      "test_id": 2,
+      "question": "What is the role of employee EMP-9942?",
+      "context_relevance": 0.85,
+      "faithfulness": 0.9,
+      "answer_relevance": 0.95,
+      "rag_triad_score": 0.9,
+      "generated_answer": "{\"tool\": \"get_employee_info\", \"args\": {\"identifier\": \"EMP-9942\"}}"
+    },
+    {
+      "test_id": 3,
+      "question": "Which department had the highest sales revenue?",
+      "context_relevance": 0.85,
+      "faithfulness": 0.9,
+      "answer_relevance": 0.95,
+      "rag_triad_score": 0.9,
+      "generated_answer": "{\"tool\": \"get_sales_report\", \"args\": {\"period\": \"Q3\"}}"
+    }
+  ]
+}

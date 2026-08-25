@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # Service 1: FastAPI Enterprise AI Backend
+  # ==========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ai_enterprise_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/ai_ops_db
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - JWT_SECRET=super_secret_jwt_enterprise_key_2025_prod
+      - ACCESS_TOKEN_EXPIRE_MINUTES=1440
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  # ==========================================
+  # Service 2: PostgreSQL 16 + pgvector Database
+  # ==========================================
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: ai_enterprise_db
+    environment:
+      - POSTGRES_DB=ai_ops_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ai_ops_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ==========================================
+  # Service 3: Redis Cache & Session Store
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    container_name: ai_enterprise_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "question": "What is the international meal allowance for business travel?",
+    "ground_truth": "The international meal allowance is $75 per day.",
+    "expected_document": "Travel_Policy_2025.txt"
+  },
+  {
+    "id": 2,
+    "question": "What is the role of employee EMP-9942?",
+    "ground_truth": "EMP-9942 is Senior Security Architect assigned to Project Alpha.",
+    "expected_document": "Employee_Roster_2025.txt"
+  },
+  {
+    "id": 3,
+    "question": "Which department had the highest sales revenue?",
+    "ground_truth": "Sales department had the highest revenue.",
+    "expected_document": "departments"
+  }
+]

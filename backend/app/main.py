@@ -16,10 +16,16 @@ async def lifespan(app: FastAPI):
     FastAPI Lifespan Context Manager.
     Automatically creates database tables on startup if they do not exist.
     """
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    except Exception as e:
+        print(f"Warning: Database startup connection failed (PostgreSQL container may be starting up): {e}")
     yield
-    await engine.dispose()
+    try:
+        await engine.dispose()
+    except Exception:
+        pass
 
 
 app = FastAPI(

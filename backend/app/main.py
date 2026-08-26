@@ -4,7 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.api import health, auth, ai, documents, rag, agent, sql_agent, approval, conversation, bi, report, evaluation, observability, security
+from app.api import (
+    health, auth, ai, documents, rag, agent, sql_agent,
+    approval, conversation, bi, report, evaluation, observability, security, recruitment
+)
 
 
 @asynccontextmanager
@@ -52,6 +55,7 @@ app.include_router(report.router, prefix="/api")
 app.include_router(evaluation.router, prefix="/api")
 app.include_router(observability.router, prefix="/api")
 app.include_router(security.router, prefix="/api")
+app.include_router(recruitment.router, prefix="/api")
 
 
 @app.get("/")

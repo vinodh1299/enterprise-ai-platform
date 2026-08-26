@@ -1,6 +1,6 @@
 from datetime import timedelta
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -93,39 +93,14 @@ async def register_user(
 
 @router.post("/auth/login", response_model=Token, tags=["Authentication"])
 async def login_user(
-    request: Request,
+    credentials: UserLogin,
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Authenticate user credentials (accepts both JSON and Form payloads) and issue a signed JWT access token.
+    Authenticate user credentials (JSON payload) and issue a signed JWT access token.
     """
-    email: Optional[str] = None
-    password: Optional[str] = None
-
-    content_type = request.headers.get("content-type", "").lower()
-
-    if "application/json" in content_type:
-        try:
-            body = await request.json()
-            email = body.get("email") or body.get("username")
-            password = body.get("password")
-        except Exception:
-            pass
-    else:
-        try:
-            form = await request.form()
-            email = form.get("username") or form.get("email")
-            password = form.get("password")
-        except Exception:
-            pass
-
-    if not email or not password:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Email/username and password are required."
-        )
-
-    email = email.strip()
+    email = credentials.email.strip()
+    password = credentials.password
 
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()

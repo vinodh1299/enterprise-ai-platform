@@ -8,7 +8,8 @@ from app.core.database import get_db
 from app.api.auth import get_current_user
 from app.models.user import User
 from app.models.approval import ApprovalTask, AuditLog
-from app.schemas.approval import ApprovalTaskResponse, ApprovalActionRequest, AuditLogResponse
+from app.schemas.approval import ApprovalTaskResponse, ApprovalActionRequest, AuditLogResponse, ApprovalCopilotSummary
+from app.ai.agents.approval_copilot import generate_copilot_summary
 
 router = APIRouter()
 
@@ -119,3 +120,27 @@ async def list_audit_logs(
         select(AuditLog).order_by(AuditLog.timestamp.desc()).limit(100)
     )
     return result.scalars().all()
+
+
+@router.get("/approvals/{task_id}/copilot-summary", response_model=ApprovalCopilotSummary, tags=["Human-in-the-Loop Approvals"])
+async def get_approval_copilot_summary(
+    task_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    AI Manager Approval Copilot Endpoint.
+    Evaluates pending staged approval tasks using local Ollama LLM reasoning,
+    analyzing risk levels, policy compliance, and conflict risks for managers.
+    """
+    result = await db.execute(select(ApprovalTask).where(ApprovalTask.id == task_id))
+    task = result.scalar_one_or_none()
+
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Approval task #{task_id} not found."
+        )
+
+    copilot_summary = await generate_copilot_summary(task=task, db=db)
+    return copilot_summary

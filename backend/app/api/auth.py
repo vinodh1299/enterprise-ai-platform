@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -14,11 +14,11 @@ from app.schemas.token import Token
 
 router = APIRouter()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+security_bearer = HTTPBearer(auto_error=False)
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    auth: Optional[HTTPAuthorizationCredentials] = Depends(security_bearer),
     db: AsyncSession = Depends(get_db)
 ) -> User:
     """
@@ -31,6 +31,10 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
+    if not auth or not auth.credentials:
+        raise credentials_exception
+
+    token = auth.credentials
     payload = decode_access_token(token)
     if not payload:
         raise credentials_exception
@@ -93,8 +97,7 @@ async def login_user(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Authenticate user credentials (supports both OAuth2 form-data and JSON payloads)
-    and issue a signed JWT access token.
+    Authenticate user credentials (accepts both JSON and Form payloads) and issue a signed JWT access token.
     """
     email: Optional[str] = None
     password: Optional[str] = None
@@ -122,7 +125,6 @@ async def login_user(
             detail="Email/username and password are required."
         )
 
-    # Strip whitespace from email
     email = email.strip()
 
     result = await db.execute(select(User).where(User.email == email))

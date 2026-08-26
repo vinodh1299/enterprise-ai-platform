@@ -96,9 +96,10 @@ async def login_user(
     Authenticate user credentials (supports both OAuth2 form-data and JSON payloads)
     and issue a signed JWT access token.
     """
-    content_type = request.headers.get("content-type", "").lower()
     email: Optional[str] = None
     password: Optional[str] = None
+
+    content_type = request.headers.get("content-type", "").lower()
 
     if "application/json" in content_type:
         try:
@@ -120,6 +121,9 @@ async def login_user(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Email/username and password are required."
         )
+
+    # Strip whitespace from email
+    email = email.strip()
 
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()

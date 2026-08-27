@@ -240,7 +240,7 @@
     </div>
 
     <!-- ========================================================================= -->
-    <!-- TAB 4: VOICE ASSISTANT ("MARK") -->
+    <!-- TAB 4: VOICE ASSISTANT ("MARK") WITH LIVE MICROPHONE -->
     <!-- ========================================================================= -->
     <div id="content-voice" class="tab-content hidden glass p-6 rounded-2xl space-y-6">
       <div class="flex items-center justify-between border-b border-gray-800 pb-4">
@@ -248,29 +248,48 @@
           <h3 class="text-lg font-semibold text-white flex items-center gap-2">
             <i class="fa-solid fa-microphone-lines text-red-400"></i> Voice Assistant Engine ("Mark")
           </h3>
-          <p class="text-xs text-gray-400">Multi-format audio transcription (.wav, .mp3, .m4a) with Indian-English accent processing.</p>
+          <p class="text-xs text-gray-400">Speak into your Mac microphone or run simulated audio transcription.</p>
         </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="space-y-4">
-          <div class="p-4 bg-gray-900 rounded-xl border border-gray-800 space-y-2">
-            <span class="text-xs text-gray-400 block font-semibold">Simulate Voice Speech Command</span>
-            <p class="text-xs text-gray-300 italic">"Mark, I want to apply for 2 days leave on October 14th and 15th for my personal work."</p>
+          <!-- LIVE MICROPHONE CONTROLS -->
+          <div class="p-5 bg-gray-900/90 rounded-2xl border border-gray-800 text-center space-y-4">
+            <span class="text-xs text-gray-400 uppercase tracking-wider font-semibold block">Live Mac Microphone Recording</span>
+            
+            <div id="mic-status-badge" class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono bg-gray-800 text-gray-400 border border-gray-700">
+              <span class="w-2 h-2 rounded-full bg-gray-500"></span> Ready to Record
+            </div>
+
+            <div class="flex justify-center gap-3">
+              <button id="btn-record-start" onclick="startMicRecording()" class="bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white font-medium py-2.5 px-5 rounded-xl text-sm transition-all shadow-lg shadow-red-600/20 flex items-center gap-2">
+                <i class="fa-solid fa-microphone"></i> Start Recording
+              </button>
+              <button id="btn-record-stop" onclick="stopMicRecording()" disabled class="bg-gray-800 text-gray-500 font-medium py-2.5 px-5 rounded-xl text-sm border border-gray-700 cursor-not-allowed flex items-center gap-2">
+                <i class="fa-solid fa-stop"></i> Stop & Transcribe
+              </button>
+            </div>
+            <p class="text-[11px] text-gray-500 italic">Click "Start Recording", speak your request (e.g. "Mark, check leave balance"), then click "Stop".</p>
           </div>
-          <button onclick="runVoiceSTT()" class="w-full bg-gradient-to-r from-red-600 to-pink-500 hover:from-red-500 hover:to-pink-400 text-white text-sm font-medium py-3 rounded-xl shadow-lg shadow-red-600/20 flex items-center justify-center gap-2">
-            <i class="fa-solid fa-waveform"></i> Transcribe Audio Blob
-          </button>
+
+          <!-- SIMULATED SAMPLE BUTTON -->
+          <div class="p-3 bg-gray-900/40 rounded-xl border border-gray-800/60 flex items-center justify-between">
+            <span class="text-xs text-gray-400">Simulate Sample Audio Payload:</span>
+            <button onclick="runVoiceSTT()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs py-1.5 px-3 rounded-lg border border-gray-700 flex items-center gap-1.5">
+              <i class="fa-solid fa-waveform"></i> Run Simulated Sample
+            </button>
+          </div>
         </div>
 
-        <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-800 space-y-3" id="voice-output-card">
+        <div class="bg-gray-900/60 p-5 rounded-2xl border border-gray-800 space-y-4" id="voice-output-card">
           <div class="flex justify-between items-center text-xs text-gray-400 border-b border-gray-800 pb-2">
-            <span>Language: <strong class="text-white" id="stt-lang">en-IN</strong></span>
+            <span>Detected Accent: <strong class="text-white" id="stt-lang">en-IN (Indian English)</strong></span>
             <span>Confidence: <strong class="text-green-400 font-mono" id="stt-conf">--</strong></span>
           </div>
           <div>
-            <span class="text-xs text-gray-400 block mb-1">Transcribed Text</span>
-            <p class="text-sm text-gray-200 bg-black/40 p-3 rounded-lg border border-gray-800 font-mono text-xs" id="stt-text">No audio transcribed yet.</p>
+            <span class="text-xs text-gray-400 block mb-1">Transcribed Speech Text</span>
+            <p class="text-sm text-gray-200 bg-black/40 p-4 rounded-xl border border-gray-800 font-mono text-xs leading-relaxed" id="stt-text">No audio transcribed yet.</p>
           </div>
           <div>
             <span class="text-xs text-gray-400 block mb-1">Extracted Intent Actions</span>
@@ -357,6 +376,8 @@
   <!-- SCRIPTS & API LOGIC -->
   <script>
     let jwtToken = '';
+    let mediaRecorder = null;
+    let audioChunks = [];
 
     // Auto-login on load to get JWT Token
     async function autoLogin() {
@@ -471,12 +492,59 @@
       }
     }
 
-    // 4. Voice STT
-    async function runVoiceSTT() {
-      const dummyWav = "RIFF\x24\x00\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00\x80\x3e\x00\x00\x00\x7d\x00\x00\x02\x00\x10\x00data\x00\x00\x00\x00";
-      const blob = new Blob([dummyWav], { type: 'audio/wav' });
+    // 4. LIVE MICROPHONE RECORDING LOGIC
+    async function startMicRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+          await uploadAndTranscribeBlob(audioBlob, "live_mac_mic.wav");
+        };
+
+        mediaRecorder.start();
+
+        // UI Updates
+        document.getElementById('btn-record-start').disabled = true;
+        document.getElementById('btn-record-start').classList.add('opacity-50', 'cursor-not-allowed');
+        
+        const stopBtn = document.getElementById('btn-record-stop');
+        stopBtn.disabled = false;
+        stopBtn.classList.remove('bg-gray-800', 'text-gray-500', 'cursor-not-allowed');
+        stopBtn.classList.add('bg-red-600', 'hover:bg-red-500', 'text-white', 'shadow-lg', 'shadow-red-600/20');
+
+        document.getElementById('mic-status-badge').innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span> <strong class="text-red-400">Recording Live Speech...</strong>`;
+      } catch (err) {
+        alert("Microphone Access Denied: Please allow microphone permission in Chrome.");
+      }
+    }
+
+    function stopMicRecording() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+
+        // UI Updates
+        document.getElementById('btn-record-start').disabled = false;
+        document.getElementById('btn-record-start').classList.remove('opacity-50', 'cursor-not-allowed');
+
+        const stopBtn = document.getElementById('btn-record-stop');
+        stopBtn.disabled = true;
+        stopBtn.className = 'bg-gray-800 text-gray-500 font-medium py-2.5 px-5 rounded-xl text-sm border border-gray-700 cursor-not-allowed flex items-center gap-2';
+
+        document.getElementById('mic-status-badge').innerHTML = `<span class="w-2 h-2 rounded-full bg-green-400"></span> Processing Audio...`;
+      }
+    }
+
+    async function uploadAndTranscribeBlob(blob, filename) {
       const formData = new FormData();
-      formData.append('file', blob, 'mark_voice_sample.wav');
+      formData.append('file', blob, filename);
 
       const res = await fetch('/api/ai/stt/transcribe', {
         method: 'POST',
@@ -486,11 +554,19 @@
 
       if (res.ok) {
         const data = await res.json();
+        document.getElementById('mic-status-badge').innerHTML = `<span class="w-2 h-2 rounded-full bg-gray-500"></span> Ready to Record`;
         document.getElementById('stt-lang').innerText = data.detected_language;
         document.getElementById('stt-conf').innerText = `${Math.round(data.confidence_score * 100)}%`;
         document.getElementById('stt-text').innerText = `"${data.transcript_text}"`;
         document.getElementById('stt-intents').innerHTML = (data.extracted_intents || []).map(i => `<span class="bg-red-500/20 text-red-300 border border-red-500/30 px-2 py-1 rounded text-xs">${i}</span>`).join('');
       }
+    }
+
+    // Simulated STT fallback
+    async function runVoiceSTT() {
+      const dummyWav = "RIFF\x24\x00\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00\x80\x3e\x00\x00\x00\x7d\x00\x00\x02\x00\x10\x00data\x00\x00\x00\x00";
+      const blob = new Blob([dummyWav], { type: 'audio/wav' });
+      await uploadAndTranscribeBlob(blob, "simulated_sample.wav");
     }
 
     // 5. Roster Optimizer

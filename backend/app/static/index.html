@@ -174,7 +174,7 @@
       <div class="p-4 md:px-8 md:pb-6 max-w-4xl w-full mx-auto shrink-0">
         <div class="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-3 shadow-2xl backdrop-blur-xl focus-within:border-emerald-500/80 transition-all space-y-2">
           
-          <textarea id="rag-query-input" rows="1" onkeydown="handleKeyDown(event)" placeholder="Ask Keka Policy AI anything about company policies..." class="w-full bg-transparent border-0 text-sm text-slate-100 placeholder-slate-400 focus:outline-none resize-none px-2 py-1 max-h-32"></textarea>
+          <textarea id="rag-query-input" rows="1" onkeydown="handleKeyDown(event)" oninput="autoResizeTextarea(this)" placeholder="Ask Keka Policy AI anything about company policies..." class="w-full bg-transparent border-0 text-sm text-slate-100 placeholder-slate-400 focus:outline-none resize-none px-2 py-1 max-h-32"></textarea>
 
           <div class="flex items-center justify-between pt-1 border-t border-slate-700/40">
             <div class="flex items-center space-x-2 text-slate-400 text-xs px-1">
@@ -391,10 +391,22 @@
       `;
     }
 
+    function autoResizeTextarea(input) {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 160) + 'px';
+    }
+
     function handleKeyDown(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendRagQuery();
+      if (e.key === 'Enter') {
+        if (e.shiftKey) {
+          // Shift + Enter: Allow next line and auto-expand input box
+          setTimeout(() => autoResizeTextarea(e.target), 0);
+        } else {
+          // Enter alone: Send message
+          e.preventDefault();
+          sendRagQuery();
+          e.target.style.height = 'auto';
+        }
       }
     }
 

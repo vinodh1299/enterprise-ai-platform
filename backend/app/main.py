@@ -76,5 +76,19 @@ async def root():
     return {
         "message": f"Welcome to {settings.PROJECT_NAME} Backend",
         "documentation": "/docs",
+        "interactive_demo": "/demo",
         "health_check": "/api/health",
     }
+
+
+from fastapi.responses import FileResponse
+import os
+
+@app.get("/demo", response_class=FileResponse, include_in_schema=False)
+@app.get("/dashboard", response_class=FileResponse, include_in_schema=False)
+async def serve_executive_demo():
+    """
+    Serves the Executive AI Demo Dashboard for Boss Approvals & Presentations.
+    """
+    static_html_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
+    return FileResponse(static_html_path)

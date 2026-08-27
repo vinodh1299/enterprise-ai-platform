@@ -1,9 +1,9 @@
 {
   "total_test_cases": 3,
   "avg_context_relevance": 0.85,
-  "avg_faithfulness": 0.9,
+  "avg_faithfulness": 0.967,
   "avg_answer_relevance": 0.95,
-  "overall_rag_score": 0.9,
+  "overall_rag_score": 0.922,
   "results": [
     {
       "test_id": 1,
@@ -12,25 +12,25 @@
       "faithfulness": 0.9,
       "answer_relevance": 0.95,
       "rag_triad_score": 0.9,
-      "generated_answer": "{\"tool\": \"search_documents\", \"args\": {\"query\": \"policy\"}}"
+      "generated_answer": "The international meal allowance for business travel is $75 per day, as stated in the Travel Policy 2025 document."
     },
     {
       "test_id": 2,
       "question": "What is the role of employee EMP-9942?",
       "context_relevance": 0.85,
-      "faithfulness": 0.9,
+      "faithfulness": 1.0,
       "answer_relevance": 0.95,
-      "rag_triad_score": 0.9,
-      "generated_answer": "{\"tool\": \"get_employee_info\", \"args\": {\"identifier\": \"EMP-9942\"}}"
+      "rag_triad_score": 0.933,
+      "generated_answer": "Based on the provided documents, I cannot find the answer to your question."
     },
     {
       "test_id": 3,
       "question": "Which department had the highest sales revenue?",
       "context_relevance": 0.85,
-      "faithfulness": 0.9,
+      "faithfulness": 1.0,
       "answer_relevance": 0.95,
-      "rag_triad_score": 0.9,
-      "generated_answer": "{\"tool\": \"get_sales_report\", \"args\": {\"period\": \"Q3\"}}"
+      "rag_triad_score": 0.933,
+      "generated_answer": "Based on the provided documents, I cannot find the answer to your question. The provided context only mentions the international meal allowance for business travel, but does not provide information on sales revenue or any department's sales figures."
     }
   ]
 }

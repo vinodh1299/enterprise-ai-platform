@@ -140,7 +140,7 @@ async def get_approval_copilot_summary(
         # Auto-seed sample demo task if requested task_id does not exist in DB
         task = ApprovalTask(
             action_type="LEAVE_APPLICATION",
-            requested_by_id=current_user.id,
+            requester_id=current_user.id,
             risk_level="MEDIUM",
             action_payload={
                 "requester_name": "Alex Mercer (User #1)",

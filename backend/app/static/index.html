@@ -397,16 +397,16 @@
     }
 
     function handleKeyDown(e) {
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' || e.keyCode === 13) {
         if (e.shiftKey) {
-          // Shift + Enter: Allow next line and auto-expand input box
-          setTimeout(() => autoResizeTextarea(e.target), 0);
-        } else {
-          // Enter alone: Send message
-          e.preventDefault();
-          sendRagQuery();
-          e.target.style.height = 'auto';
+          // Shift + Enter: Allow next line
+          return;
         }
+        // Plain Enter: Prevent new line and trigger send immediately
+        e.preventDefault();
+        e.stopPropagation();
+        sendRagQuery();
+        return false;
       }
     }
 
@@ -415,7 +415,9 @@
       const query = input.value.trim();
       if (!query) return;
 
+      // Reset input value and height immediately
       input.value = '';
+      input.style.height = 'auto';
 
       // Hide welcome hero if visible
       const hero = document.getElementById('chat-welcome-hero');

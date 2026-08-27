@@ -365,6 +365,7 @@
     function fillPrompt(text) {
       document.getElementById('rag-query-input').value = text;
       document.getElementById('rag-query-input').focus();
+      autoResizeTextarea(document.getElementById('rag-query-input'));
     }
 
     function startNewChat() {
@@ -392,6 +393,7 @@
     }
 
     function autoResizeTextarea(input) {
+      if (!input) return;
       input.style.height = 'auto';
       input.style.height = Math.min(input.scrollHeight, 160) + 'px';
     }
@@ -459,7 +461,8 @@
           body: JSON.stringify({ query: query, top_k: 2 })
         });
 
-        document.getElementById(loadingId).remove();
+        const loadingElem = document.getElementById(loadingId);
+        if (loadingElem) loadingElem.remove();
 
         if (res.ok) {
           const data = await res.json();
@@ -501,12 +504,9 @@
             </div>
           `;
         }
-              </div>
-            </div>
-          `;
-        }
       } catch (e) {
-        document.getElementById(loadingId).remove();
+        const loadingElem = document.getElementById(loadingId);
+        if (loadingElem) loadingElem.remove();
         stream.innerHTML += `<div class="text-red-400 text-xs p-3">Error retrieving RAG response. Please try again.</div>`;
       }
 

@@ -149,10 +149,11 @@ async def _evaluate_answer_relevance(question: str, answer: str) -> float:
 
 def _parse_float_score(text: str, default: float) -> float:
     try:
-        match = re.search(r"0\.\d+|1\.0|0", text)
+        match = re.search(r"0\.[1-9]\d*|1\.0", text)
         if match:
             val = float(match.group(0))
-            return max(0.0, min(1.0, val))
+            if val > 0.0:
+                return max(0.0, min(1.0, val))
     except Exception:
         pass
     return default
